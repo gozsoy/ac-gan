@@ -1,0 +1,16 @@
+# experiment
+experiment_name: lbl01_glr0004_dlr0003_g13m_d390k
+
+# checkpoint
+log_dir: '../logs'
+img_save_dir: '../generated_imgs'
+
+# training
+epochs: 30
+batch_size: 128
+latent_code_size: 128
+label_smoothing: 0.0
+g_lr: 0.0004
+d_lr: 0.0003
+
+
