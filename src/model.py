@@ -1,6 +1,10 @@
 from tensorflow import keras
 from tensorflow.keras import layers, Model
 
+# TODO:
+# apply instance norm (batch norm)
+# check norms of gradients
+# use Dropout(0.5) in generator on several layers
 
 class Generator(Model):
     def __init__(self):

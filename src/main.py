@@ -149,6 +149,8 @@ if __name__ == '__main__':
     with open(_args.config, "r") as f:
         cfg = yaml.safe_load(f)
 
+    print(tf.config.list_physical_devices('GPU'))
+
     train_ds = load_data(cfg)
 
     train(cfg, train_ds)
