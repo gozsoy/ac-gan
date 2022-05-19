@@ -1,4 +1,5 @@
 # experiment
+model: cond_gan # simple_gan, cond_gan, ac_gan
 experiment_name: lblsmo00_glr0004_dlr0003_g13m_d390k
 
 # checkpoint

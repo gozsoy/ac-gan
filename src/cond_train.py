@@ -1,33 +1,15 @@
-import yaml
-import argparse
+import os
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from model import Generator, Discriminator
-
-
-def load_data(cfg):
-
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-
-    # [0,255] -> [0,1] -> [-1,1]
-    x_train = (x_train/255.) * 2. - 1.
-
-    x_train = np.expand_dims(x_train, axis=3)
-    x_train = tf.cast(x_train, dtype=tf.float32)
-
-    train_ds = tf.data.Dataset.from_tensor_slices(x_train)
-    train_ds = train_ds.shuffle(1000).batch(cfg['batch_size'])
-    train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
-
-    return train_ds
+from model import Conditional_Generator, Conditional_Discriminator
 
 
 def train(cfg, train_ds):
 
     # models
-    net_g, net_d = Generator(), Discriminator()
+    net_g, net_d = Conditional_Generator(), Conditional_Discriminator()
 
     # loss function
     loss_fn = tf.keras.losses.BinaryCrossentropy(
@@ -43,16 +25,19 @@ def train(cfg, train_ds):
 
     # tensorboard
     summary_writer = tf.summary.create_file_writer(
-        cfg['log_dir']+'/'+cfg['experiment_name'])
+        os.path.join(
+            cfg['log_dir'], cfg['model'], cfg['experiment_name']))
 
     latent_code_size = cfg['latent_code_size']
 
     # fix latent code to track improvement
     latent_code4visualization = tf.random.normal(shape=(25, latent_code_size))
+    labels4visualization = np.concatenate(
+        (np.repeat(np.arange(start=0, stop=10), 2), np.array([2, 3, 4, 5, 6])))
 
     for epoch in range(cfg['epochs']):
 
-        for _, real_imgs in train_ds.enumerate():
+        for _, (real_imgs, real_lbls) in train_ds.enumerate():
             
             # PART 1: DISC TRAINING, fixed generator
             latent_code = tf.random.normal(shape=(real_imgs.shape[0],
@@ -60,11 +45,11 @@ def train(cfg, train_ds):
 
             with tf.GradientTape() as disc_tape:
                 # generate fake images
-                generated_imgs = net_g(latent_code)
+                generated_imgs = net_g(latent_code, real_lbls)
 
                 # forward pass real and fake images
-                real_preds = net_d(real_imgs)
-                fake_preds = net_d(generated_imgs)
+                real_preds = net_d(real_imgs, real_lbls)
+                fake_preds = net_d(generated_imgs, real_lbls)
 
                 y_pred = tf.concat([real_preds, fake_preds], axis=0)
                 y_true = tf.concat([tf.ones_like(real_preds),
@@ -90,10 +75,10 @@ def train(cfg, train_ds):
 
             with tf.GradientTape() as gen_tape:
                 # generate fake images
-                generated_imgs = net_g(latent_code)
+                generated_imgs = net_g(latent_code, real_lbls)
 
                 # forward pass only images
-                fake_preds = net_d(generated_imgs)
+                fake_preds = net_d(generated_imgs, real_lbls)
 
                 # compute loss
                 gen_loss = loss_fn(y_true=tf.ones_like(fake_preds),
@@ -111,14 +96,16 @@ def train(cfg, train_ds):
             gen_loss_tracker.update_state(gen_loss)
 
         # generate and save sample images per epoch
-        test_generated_imgs = net_g(latent_code4visualization)
+        test_generated_imgs = net_g(latent_code4visualization,
+                                    labels4visualization)
         test_generated_imgs = (((test_generated_imgs+1.)/2.) * 255.).numpy()
         plt.figure(figsize=(5, 5))
         for i in range(test_generated_imgs.shape[0]):
             plt.subplot(5, 5, i+1)
             plt.imshow(test_generated_imgs[i, :, :, 0], cmap='gray')
             plt.axis('off')
-        plt.savefig(cfg['img_save_dir']+'/'+cfg['experiment_name'])
+        plt.savefig(os.path.join(
+            cfg['img_save_dir'], cfg['model'], cfg['experiment_name']))
         plt.close()
         
         # display and record metrics at the end of each epoch.
@@ -133,24 +120,12 @@ def train(cfg, train_ds):
 
         disc_loss = disc_loss_tracker.result()
         gen_loss = gen_loss_tracker.result()
-        print(f'epoch: {epoch}, disc_loss: {disc_loss:.4f}, gen_loss: {gen_loss:.4f}')
+        print(f'epoch: {epoch}, disc_loss: '
+              f'{disc_loss:.4f}, gen_loss: {gen_loss:.4f}')
 
         # reset metric states
         disc_loss_tracker.reset_state()
         gen_loss_tracker.reset_state()
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, help="Path to a config file.")
-
-    _args = parser.parse_args()
-
-    with open(_args.config, "r") as f:
-        cfg = yaml.safe_load(f)
-
-    print(tf.config.list_physical_devices('GPU'))
-
-    train_ds = load_data(cfg)
-
-    train(cfg, train_ds)
+    return
+    
