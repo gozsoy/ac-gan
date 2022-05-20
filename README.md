@@ -23,13 +23,11 @@ config.yaml allows you to change model, as well as other hyperparameters.
 <td> g_lr=0.0003, d_lr=0.0002 </td>
 <td> g_lr=0.0003, d_lr=0.0001 </td>
 <td> g_lr=0.0002, d_lr=0.0001 </td>
-<td> g_lr=0.0001, d_lr=0.0001 </td>
 </tr>
 <tr>
 <td><img src="generated_imgs/ac_gan/lblsmo00_glr0003_dlr0002_g13m_d390k.png" height="270px">
 <td><img src="generated_imgs/ac_gan/lblsmo00_glr0003_dlr0001_g13m_d390k.png" height="270px">
 <td><img src="generated_imgs/ac_gan/lblsmo00_glr0002_dlr0001_g13m_d390k.png" height="270px">
-<td><img src="generated_imgs/ac_gan/lblsmo00_glr0001_dlr0001_g13m_d390k.png" height="270px">
 </tr>
 </table>
 
