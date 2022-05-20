@@ -5,6 +5,7 @@ import tensorflow as tf
 from utils import load_data
 import simple_train
 import cond_train
+import ac_train
 
 
 if __name__ == '__main__':
@@ -25,5 +26,7 @@ if __name__ == '__main__':
         simple_train.train(cfg, train_ds)
     elif cfg['model'] == 'cond_gan':
         cond_train.train(cfg, train_ds)
+    elif cfg['model'] == 'ac_gan':
+        ac_train.train(cfg, train_ds)
     else:
         raise NotImplementedError()

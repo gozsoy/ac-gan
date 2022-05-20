@@ -14,6 +14,8 @@ python run.py --config ../config.yaml
 config.yaml allows you to change model, as well as other hyperparameters.
 
 ### Models and Details 
+<img src="model_schema.png" height="270px">
+
 GAN objective defines a two-player minimax game. If either side becomes obviously stronger than other, training fails. Thus, I carefully conducted experimentation on hyperparameters (especially on disc and gen learning rates).
 
 Dataset is relatively simple MNIST, thus different architectures is not employed, but easily possible by changing model.py. Current generator has 1.3M, and discriminator has 390K parameters. Generating is harder than discriminating, hence this choice makes sense.

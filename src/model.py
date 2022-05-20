@@ -125,7 +125,7 @@ class Conditional_Discriminator(Model):
         # concatenate all maps
         concat_img = self.concat_layer([img, label_map])
 
-        # upsample to create image
+        # downsample to predict label
         x = self.main_conv2d_1(concat_img)
         x = self.main_leaky_1(x)
         x = self.main_conv2d_2(x)
@@ -136,3 +136,35 @@ class Conditional_Discriminator(Model):
         pred = self.main_linear(x)
 
         return pred
+
+
+class ACGAN_Discriminator(Model):
+    def __init__(self):
+        super().__init__()
+
+        self.main_conv2d_1 = layers.Conv2D(64, (4, 4), strides=(2, 2), padding="same")
+        self.main_leaky_1 = layers.LeakyReLU(alpha=0.2)
+        self.main_conv2d_2 = layers.Conv2D(128, (4, 4), strides=(2, 2), padding="same")
+        self.main_leaky_2 = layers.LeakyReLU(alpha=0.2)
+        self.main_conv2d_3 = layers.Conv2D(128, (4, 4), strides=(2, 2), padding="same")
+        self.main_leaky_3 = layers.LeakyReLU(alpha=0.2)
+        self.main_maxpool = layers.GlobalMaxPooling2D()
+        self.fake_head = layers.Dense(1)
+        self.class_head = layers.Dense(10)
+
+
+    def call(self, img):
+        
+        # downsample to predict label and class
+        x = self.main_conv2d_1(img)
+        x = self.main_leaky_1(x)
+        x = self.main_conv2d_2(x)
+        x = self.main_leaky_2(x)
+        x = self.main_conv2d_3(x)
+        x = self.main_leaky_3(x)
+        x = self.main_maxpool(x)
+
+        fake_pred = self.fake_head(x)
+        class_pred = self.class_head(x)
+
+        return fake_pred, class_pred
